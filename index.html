@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-group button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+        .registered-users {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 600px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .registered-users h2 {
+            margin-top: 0;
+        }
+        .registered-users table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .registered-users table, .registered-users th, .registered-users td {
+            border: 1px solid #ddd;
+        }
+        .registered-users th, .registered-users td {
+            padding: 10px;
+            text-align: left;
+        }
+        .registered-users th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <form id="registrationForm">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password:</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+        </div>
+        <div class="form-group">
+            <button type="button" onclick="register()">Register</button>
+        </div>
+    </form>
+</div>
+
+<div class="registered-users">
+    <h2>Registered Users</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody id="userList">
+            <!-- Registered users will be added here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    async function register() {
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+            alert('Passwords do not match!');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:7000/addData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            if (response.ok) {
+                alert('Registration successful!');
+                document.getElementById('registrationForm').reset();
+                loadUsers();
+            } else {
+                const data = await response.json();
+                alert(`Error: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    async function loadUsers() {
+        try {
+            const response = await fetch('http://localhost:7000/users');
+            const users = await response.json();
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const usernameCell = document.createElement('td');
+                usernameCell.textContent = user.username;
+                row.appendChild(usernameCell);
+                const emailCell = document.createElement('td');
+                emailCell.textContent = user.email;
+                row.appendChild(emailCell);
+                userList.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadUsers);
+</script>
+
+</body>
+</html>
